@@ -4,6 +4,7 @@ import pandas as pd
 import csv
 # import matplotlib.pyplot as plt
 from openpyxl.chart import LineChart, Reference
+import glob
 
 ## ACTUAL PROGRAM STARTS ###
 '''
@@ -11,21 +12,28 @@ I need a more user-friendly way to look for the files that need to be added to t
 Perhaps glob module to find all csv files in the thumb drive folder?
 Or have the user manually input the file names?
 '''
-dir_list = os.listdir()
-if "Thumb_Drive_Placeholder" in dir_list:
-    os.chdir("Thumb_Drive_Placeholder")
-    input_filename = "Sample001.csv" # turn off for final program
+
+###Glob.glob(\filepath\*.extension)
+## def find_files_by_extension(directory, extension):
+##     pattern = os.path.join(directory, f"*{extension}")
+##     return glob.glob(pattern) 
+## csv_files = find_files_by_extension(rf'{os.getcwd()}', ".csv")
+
+# Searches CWD for all csv files
+csv_files = glob.glob(rf'*.csv')
+# Iterates through each of the files and process them
+for csv_file in csv_files:
     rowlist = []
     target1 = float(180)
     target2 = float(500)
-    with open(f"{input_filename}") as file:
+    with open(f"{csv_file}") as file:
         reader = csv.DictReader(file)
         for row in reader:
             rowlist.append(row)
     closest_dict1 = min(rowlist, key=lambda x: abs(float(x['Temp']) - target1))
     closest_dict2 = min(rowlist, key=lambda x: abs(float(x['Temp']) - target2))
     # The 2 target Temp/Weight value pairs have been found, now will add those to the master>sample sheet, run the equation and add the result purity
-    os.chdir('..')
+    ## os.chdir('..')
     mb = openpyxl.load_workbook('master_wb.xlsx') 
     general_equation = mb['Equation']['A1'].value
     evaluated_equation = general_equation.replace("a", str(closest_dict1['Temp'])).replace("b", str(closest_dict1['Weight'])).replace("x", str(closest_dict2['Temp'])).replace("y", str(closest_dict2['Weight']))
@@ -34,7 +42,8 @@ if "Thumb_Drive_Placeholder" in dir_list:
     z = eval(expression)
 
 ### NEED TO COPY CSV DATA TO THIS FILE IN SHEET WITH SAMPLE NAME ###
-    sample_sheet = mb['Sample001']
+    mb.create_sheet(csv_file.split('.')[0])
+    sample_sheet = mb[rf"{csv_file.split('.')[0]}"]
     sample_sheet['A1'] = "Temp"
     sample_sheet['B1'] = "Weight"
     sample_sheet['C1'] = "Purity"
@@ -73,7 +82,7 @@ if "Thumb_Drive_Placeholder" in dir_list:
     #     plt.show()  # Display the graph
     
     mb.save("master_wb.xlsx")
-    print("Data added to master excel file")
+    print(rf"'{csv_file}' Data added to master excel file")
 '''
     SAMPLE FORMAT(sample numb, date, size of sample)= Sample001 20250406 35mg
     this gets input into the TGA 
