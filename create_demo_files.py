@@ -28,12 +28,6 @@ def create_demo_csv(name):
     pd_from_xl.to_csv(f"{name}.csv", index=False)
     os.unlink("initial_wb.xlsx") # deletes the initial excel file, not needed anymore
 
-# os.chdir("Thumb_Drive_Placeholder")
-create_demo_csv("Sample001")
-create_demo_csv("Sample002")
-create_demo_csv("Sample003")
-# os.chdir("..")
-
 # Creates demo master excel file
 def create_demo_master_excel(name):
     master_wb = openpyxl.Workbook()
@@ -42,6 +36,17 @@ def create_demo_master_excel(name):
     master_wb["Equation"]["A1"] = "(a/b)+(x/y)/2=z" # Not the real equation for confidentiality
     master_wb.save(f"{name}.xlsx")
 
-create_demo_master_excel("master_wb")
-print("Demo files created")
-### DEMO FILES CREATED ###
+def main():
+    # os.chdir("Thumb_Drive_Placeholder")
+    create_demo_csv("Sample001")
+    create_demo_csv("Sample002")
+    create_demo_csv("Sample003")
+    # os.chdir("..")
+
+    create_demo_master_excel("master_wb")
+    print("Demo files created")
+    ### DEMO FILES CREATED ###
+
+# print(f"Module name: {__name__}")
+if __name__ == "__main__":
+    main()
