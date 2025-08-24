@@ -1,4 +1,4 @@
-#TGA Automation
+# TGA Automation
 
 Python program to process CSV data from a Thermogravimetric Analyzer (TGA), programmatically create spreadsheets, and generate visualizations of the results. Written with Pandas, Matplotlib, Numpy
 
