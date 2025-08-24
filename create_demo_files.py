@@ -2,31 +2,75 @@ import openpyxl
 import os
 import random
 import pandas as pd
+import time
 
+"""
+old function with linear falloff
+"""
+# def create_demo_csv(name):
+#     initial_wb = openpyxl.Workbook()
+#     initial_wb.active.title = "Sheet"
+#     initial_wb["Sheet"]["A1"] = "Temp"
+#     initial_wb["Sheet"]["B1"] = "Weight"
+#     temp_num = 35
+#     weight_num = 35
+#     weight_loss = -1 * float(5/145)
+#     for i in range(2,500-35+3): # was (35,501), starts at row2 because row1 is occupied by column names, 500 is the temp it ends at - 35 since we're starting at 35, plus 3 to offset how we are starting at row2
+#         initial_wb["Sheet"].cell(row=i, column=1).value = temp_num
+#         initial_wb["Sheet"].cell(row=i, column=2).value = weight_num # 35=35, 180=30, 500=?? 145-5 (5/145)=0.0344827   325-25 470-20 
+#         temp_num += 1 
+#         weight_num += weight_loss
+#     for i in range(2,500-35+3): # iterating over temps and slightly changing each to seem more natural
+#         random_num = random.random()/2 - .25
+#         initial_wb["Sheet"].cell(row=i, column=1).value += random_num
+#     for i in range(2,500-35+3): # same as above but for weights
+#         random_num = random.random()/2 - .25
+#         initial_wb["Sheet"].cell(row=i, column=2).value += random_num
+#     initial_wb.save("initial_wb.xlsx")
+#     # Converts the initial excel file to a csv file
+#     pd_from_xl = pd.read_excel("initial_wb.xlsx")
+#     pd_from_xl.to_csv(f"{name}.csv", index=False)
+#     os.unlink("initial_wb.xlsx") # deletes the initial excel file, not needed anymore
+
+"""
+this new function generates a more realistic falloff
+"""
 def create_demo_csv(name):
+    import numpy as np
+
     initial_wb = openpyxl.Workbook()
     initial_wb.active.title = "Sheet"
-    initial_wb["Sheet"]["A1"] = "Temp"
-    initial_wb["Sheet"]["B1"] = "Weight"
-    temp_num = 35
-    weight_num = 35
-    weight_loss = -1 * float(5/145)
-    for i in range(2,500-35+3): # was (35,501), starts at row2 because row1 is occupied by column names, 500 is the temp it ends at - 35 since we're starting at 35, plus 3 to offset how we are starting at row2
-        initial_wb["Sheet"].cell(row=i, column=1).value = temp_num
-        initial_wb["Sheet"].cell(row=i, column=2).value = weight_num # 35=35, 180=30, 500=?? 145-5 (5/145)=0.0344827   325-25 470-20 
-        temp_num += 1 
-        weight_num += weight_loss
-    for i in range(2,500-35+3): # iterating through temps and slightly changing each to seem more natural
-        random_num = random.random()/2 - .25
-        initial_wb["Sheet"].cell(row=i, column=1).value += random_num
-    for i in range(2,500-35+3): # same as above but for weights
-        random_num = random.random()/2 - .25
-        initial_wb["Sheet"].cell(row=i, column=2).value += random_num
+    sheet = initial_wb["Sheet"]
+    sheet["A1"] = "Temp"
+    sheet["B1"] = "Weight"
+
+    temps = np.linspace(35, 500, 466)  # 466 points from 35 to 500
+    weights = []
+
+    for t in temps:
+        if t < 100:
+            # Outer layer burns quickly
+            w = 35 - (t - 35) * 0.15
+        elif t < 300:
+            # Slow burn
+            w = 25 - (t - 100) * 0.03
+        else:
+            # Final bump or plateau
+            w = 18 + np.sin((t - 300) / 50) * 1.5  # small oscillation
+
+        # Add randomness
+        w += random.uniform(-0.2, 0.2)
+        weights.append(w)
+
+    for i, (t, w) in enumerate(zip(temps, weights), start=2):
+        sheet.cell(row=i, column=1).value = round(t + random.uniform(-0.3, 0.3), 2)
+        sheet.cell(row=i, column=2).value = round(w, 2)
+
     initial_wb.save("initial_wb.xlsx")
-    # Converts the initial excel file to a csv file
     pd_from_xl = pd.read_excel("initial_wb.xlsx")
     pd_from_xl.to_csv(f"{name}.csv", index=False)
-    os.unlink("initial_wb.xlsx") # deletes the initial excel file, not needed anymore
+    os.unlink("initial_wb.xlsx")
+
 
 # Creates demo master excel file
 def create_demo_master_excel(name):
@@ -45,6 +89,7 @@ def main():
 
     create_demo_master_excel("master_wb")
     print("Demo files created")
+    time.sleep(5)
     ### DEMO FILES CREATED ###
 
 # print(f"Module name: {__name__}")

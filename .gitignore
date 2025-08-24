@@ -3,3 +3,7 @@
 .env
 *.xlsx
 __pycache__/
+# clear_demo_files.py
+
+dist/
+build/
